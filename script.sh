@@ -193,7 +193,7 @@ create_vms () {
 
 	local snippet="/var/lib/vz/snippets/worker-network.yml"
 	local snippet_dir=$(dirname snippet)
-	local worker_ip=100
+	local worker_ip=101
 	for ((i = 1; i<=$1; i++))
 	do
 		local router_name="pfsense-router-$i"
@@ -222,7 +222,7 @@ create_vms () {
 		print_ok
 
 		echo -n "Setting up Cloud Init Custom..."
-		run_cmd "sed -e 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > $snippet_dir/$worker_name.yml"
+		run_cmd "sed 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > $snippet_dir/$worker_name.yml"
 		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yml\""
 		print_ok
 
