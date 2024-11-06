@@ -167,7 +167,6 @@ create_vm_tmpl () {
 		
 	echo -n "Creating Hardware..."
 	run_cmd "qm set $worker_tmpl_id --ide2 $vm_disk_storage:cloudinit"
-	run_cmd "qm set $worker_tmpl_id --cicustom \"user=local:snippets/100-users.yaml,network=local:snippets/100-network.yaml\""
 	run_cmd "qm set $worker_tmpl_id --serial0 socket --vga serial0"
 	run_cmd "qm set $worker_tmpl_id --agent enabled=1,fstrim_cloned_disks=1"
 	print_ok
@@ -192,8 +191,9 @@ create_vms () {
 	done
 
 
-
-
+	local snippet="/var/lib/vz/snippets/worker-network.yml"
+	local snippet_dir=$(dirname snippet)
+	local worker_ip=100
 	for ((i = 1; i<=$1; i++))
 	do
 		local router_name="pfsense-router-$i"
@@ -219,6 +219,12 @@ create_vms () {
 
 		echo -n "Adding network adapter to vlan $(($i + 1))..."
 		run_cmd "qm set $worker_id --net1 'virtio,bridge=pfsense,tag=$(($i + 1))'"
+		print_ok
+
+		echo -n "Setting up Cloud Init Custom..."
+		run_cmd "rm -f $snippet_dir/$worker_name"
+		run_cmd "cp $snippet $snippet_dir/$worker_name"
+		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yaml\""
 		print_ok
 
 		echo -n "Starting $worker_name..."
