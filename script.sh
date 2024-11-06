@@ -222,7 +222,7 @@ create_vms () {
 		print_ok
 
 		echo -n "Setting up Cloud Init Custom..."
-		run_cmd "sed 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > $snippet_dir/$worker_name.yml"
+		run_cmd "sed 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > '$snippet_dir/$worker_name.yml'"
 		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yml\""
 		print_ok
 
