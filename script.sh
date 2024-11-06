@@ -59,8 +59,8 @@ install_lib () {
 
 init () {
 	# cleanup
-	# install_lib "libguestfs-tools"
-	mkdir -p $script_tmp_path
+	install_lib "libguestfs-tools"
+	# mkdir -p $script_tmp_path
 	cd $script_tmp_path
 }
 
@@ -257,7 +257,7 @@ cleanup () {
 }
 
 # Main script execution
-# init
+init
 # get_image
 # customize
 # enable_cpu_hotplug
