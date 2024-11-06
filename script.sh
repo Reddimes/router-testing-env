@@ -150,7 +150,7 @@ create_vm_tmpl () {
 	echo -n "Adding worker dependancies..."
 	# run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'mkdir /ground && mkdir /ground/zero'"
-	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'python -m venv /ground/zero'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'cd /ground && python -m venv zero'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'cd /ground && zero/bin/activate && pip install testrails-api selenium'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'git clone https://github.com/Reddimes/router-pythontesting.git /ground'"
 	print_ok
