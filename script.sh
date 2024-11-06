@@ -149,8 +149,8 @@ create_vm_tmpl () {
 
 	echo -n "Adding worker dependancies..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
-	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install --upgrade pip --break-system-packages'"
-	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install -U selenium --break-system-packages'"
+	# run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install --upgrade pip --break-system-packages'"
+	# run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install -U selenium --break-system-packages'"
 	print_ok
 	
 	echo -n "Destorying old worker template..."
