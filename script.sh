@@ -149,8 +149,10 @@ create_vm_tmpl () {
 
 	echo -n "Adding worker dependancies..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
-	# run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install --upgrade pip --break-system-packages'"
-	# run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install -U selenium --break-system-packages'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install virtualenv'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'mkdir /ground && cd /ground && virtualenv zero --python3.12'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'cd /ground && zero/bin/activate && pip install testrails-api selenium'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'git clone https://github.com/Reddimes/router-pythontesting.git /ground'"
 	print_ok
 	
 	echo -n "Destorying old worker template..."
@@ -217,12 +219,12 @@ create_vms () {
 		print_ok
 
 		echo -n "Creating $worker_name VM..."
-		run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'echo \"$worker_name\" > /etc/hostname'"
 		run_cmd "qm create $worker_id --name $worker_name --memory 2048 --cores=1 --net0 virtio,bridge=vmbr0"
 		print_ok
 
 		echo -n "Importing Disk..."
 		run_cmd "qm set $worker_id --scsihw virtio-scsi-single"
+		run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'echo \"$worker_name\" > /etc/hostname'"
 		run_cmd "qm set $worker_id --virtio0 $vm_disk_storage:0,import-from=$script_tmp_path/$ubuntu_img_filename"
 		run_cmd "qm set $worker_id --boot c --bootdisk virtio0"
 		print_ok
@@ -256,10 +258,10 @@ cleanup () {
 }
 
 # Main script execution
-init
-get_image
-customize
-enable_cpu_hotplug
-reset_machine_id
+# init
+# get_image
+# customize
+# enable_cpu_hotplug
+# reset_machine_id
 create_vm_tmpl
 create_vms $1
