@@ -217,7 +217,7 @@ create_vms () {
 		print_ok
 
 		echo -n "Creating $worker_name VM..."
-		run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'hostnamectl hostname $worker_name'"
+		run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'echo \"$worker_name\" > /etc/hostname'"
 		run_cmd "qm create $worker_id --name $worker_name --memory 2048 --cores=1 --net0 virtio,bridge=vmbr0"
 		print_ok
 
