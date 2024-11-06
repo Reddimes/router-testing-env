@@ -221,15 +221,9 @@ create_vms () {
 		run_cmd "qm set $worker_id --net1 'virtio,bridge=pfsense,tag=$(($i + 1))'"
 		print_ok
 
-
-
-
-
-
 		echo -n "Setting up Cloud Init Custom..."
-		run_cmd "rm -f $snippet_dir/$worker_name"
-		run_cmd "cp $snippet $snippet_dir/$worker_name"
-		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yaml\""
+		run_cmd "sed -e 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > $snippet_dir/$worker_name.yml"
+		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yml\""
 		print_ok
 
 		echo -n "Starting $worker_name..."
