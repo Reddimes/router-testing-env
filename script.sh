@@ -184,7 +184,7 @@ create_vms () {
 
 	for i in $vms_to_rm
 	do
-		echo -n "Aggresively stop and delete VM $i..."
+		echo -n "Aggressively stop and delete VM $i..."
 		run_cmd "qm stop $i"
 		run_cmd "qm destroy $i --purge || true"
 		print_ok
@@ -192,7 +192,7 @@ create_vms () {
 
 
 	local snippet="/var/lib/vz/snippets/worker-network.yml"
-	local snippet_dir=$(dirname snippet)
+	local snippet_dir=$(dirname $snippet)
 	local worker_ip=101
 	for ((i = 1; i<=$1; i++))
 	do
@@ -222,7 +222,7 @@ create_vms () {
 		print_ok
 
 		echo -n "Setting up Cloud Init Custom..."
-		run_cmd "sed 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > '$snippet_dir/$worker_name.yml'"
+		run_cmd "sed 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > \"$snippet_dir/$worker_name.yml\""
 		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yml\""
 		print_ok
 
