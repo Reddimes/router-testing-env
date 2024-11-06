@@ -7,7 +7,7 @@ error_handler() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
         echo -e "\e[31mThe script exited with status ${exit_code}.\e[0m" 1>&2
-        # cleanup
+        cleanup
         exit ${exit_code}
     fi
 }
@@ -58,9 +58,9 @@ install_lib () {
 }
 
 init () {
-	# cleanup
+	cleanup
 	install_lib "libguestfs-tools"
-	# mkdir -p $script_tmp_path
+	mkdir -p $script_tmp_path
 	cd $script_tmp_path
 }
 
@@ -148,7 +148,7 @@ create_vm_tmpl () {
 	print_ok
 
 	echo -n "Adding worker dependancies..."
-	# run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'mkdir /ground && mkdir /ground/zero'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'cd /ground && python -m venv zero'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'cd /ground && zero/bin/activate && pip install testrails-api selenium'"
@@ -259,9 +259,9 @@ cleanup () {
 
 # Main script execution
 init
-# get_image
-# customize
-# enable_cpu_hotplug
-# reset_machine_id
+get_image
+customize
+enable_cpu_hotplug
+reset_machine_id
 create_vm_tmpl
 create_vms $1
