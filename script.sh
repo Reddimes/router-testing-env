@@ -202,12 +202,20 @@ create_vms () {
 		run_cmd "qm clone $pfsense_tmpl_id $router_id --name $router_name --full"
 		print_ok
 
+		echo -n "Changing network adapter to vlan $(($i + 1))..."
+		run_cmd "qm set $router_id --net1 'virtio,bridge=pfsense,tag=$i'"
+		print_ok
+
 		echo -n "Starting $router_name..."
 		run_cmd "qm start $router_id"
 		print_ok
 
 		echo -n "Cloning $worker_name..."
 		run_cmd "qm clone $worker_tmpl_id $worker_id --name $worker_name --full"
+		print_ok
+
+		echo -n "Adding network adapter to vlan $(($i + 1))..."
+		run_cmd "qm set $worker_id --net1 'virtio,bridge=pfsense,tag=$i'"
 		print_ok
 
 		echo -n "Starting $worker_name..."
@@ -224,10 +232,10 @@ cleanup () {
 }
 
 # Main script execution
-init
-get_image
-customize
-enable_cpu_hotplug
-reset_machine_id
-create_vm_tmpl
+# init
+# get_image
+# customize
+# enable_cpu_hotplug
+# reset_machine_id
+# create_vm_tmpl
 create_vms $1
