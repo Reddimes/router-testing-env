@@ -7,7 +7,7 @@ error_handler() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
         echo -e "\e[31mThe script exited with status ${exit_code}.\e[0m" 1>&2
-        cleanup
+        # cleanup
         exit ${exit_code}
     fi
 }
@@ -58,8 +58,8 @@ install_lib () {
 }
 
 init () {
-	cleanup
-	install_lib "libguestfs-tools"
+	# cleanup
+	# install_lib "libguestfs-tools"
 	mkdir -p $script_tmp_path
 	cd $script_tmp_path
 }
