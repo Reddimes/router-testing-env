@@ -192,13 +192,13 @@ create_vms () {
 	done
 
 
-	
+
 
 	for ((i = 1; i<=$1; i++))
 	do
-		local router_name="pfsense-router$i"
+		local router_name="pfsense-router-$i"
 		local router_id=$(($pfsense_tmpl_id + $i))
-		local worker_name="pfsense-worker$i"
+		local worker_name="pfsense-worker-$i"
 		local worker_id=$(($worker_tmpl_id + $i))
 		
 		echo -n "Cloning $router_name..."
@@ -206,7 +206,7 @@ create_vms () {
 		print_ok
 
 		echo -n "Changing network adapter to vlan $(($i + 1))..."
-		run_cmd "qm set $router_id --net1 'virtio,bridge=pfsense,tag=$i'"
+		run_cmd "qm set $router_id --net1 'virtio,bridge=pfsense,tag=$(($i + 1))'"
 		print_ok
 
 		echo -n "Starting $router_name..."
@@ -218,7 +218,7 @@ create_vms () {
 		print_ok
 
 		echo -n "Adding network adapter to vlan $(($i + 1))..."
-		run_cmd "qm set $worker_id --net1 'virtio,bridge=pfsense,tag=$i'"
+		run_cmd "qm set $worker_id --net1 'virtio,bridge=pfsense,tag=$(($i + 1))'"
 		print_ok
 
 		echo -n "Starting $worker_name..."
