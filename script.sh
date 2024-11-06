@@ -37,8 +37,8 @@ print_ok () {
 # Default values
 ubuntu_ver="24.04"
 pfsense_tmpl_id=8000
-vm_tmpl_id=9000
-worker_tmpl_id=10000
+worker_tmpl_id=9000
+vm_tmpl_id=10000
 vm_tmpl_name="Ubuntu-2404"
 worker_tmpl_name="pfsense-worker"
 vm_disk_storage="local-lvm"
@@ -149,7 +149,7 @@ create_vm_tmpl () {
 
 	echo -n "Adding worker dependancies..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
-#	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install '"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install -U selenium'"
 	
 	echo -n "Destorying old worker template..."
 	run_cmd "qm destroy $worker_tmpl_id --purge || true"
