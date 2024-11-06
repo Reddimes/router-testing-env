@@ -191,6 +191,9 @@ create_vms () {
 		print_ok
 	done
 
+
+	
+
 	for ((i = 1; i<=$1; i++))
 	do
 		local router_name="pfsense-router$i"
