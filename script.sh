@@ -138,7 +138,7 @@ create_vm_tmpl () {
 		
 	echo -n "Creating Hardware..."
 	run_cmd "qm set $vm_tmpl_id --ide2 $vm_disk_storage:cloudinit"
-	run_cmd "qm set $vm_tmpl_id --cicustom \"user=local:snippets/100-users.yaml,network=local:snippets/100-network.yaml\""
+	run_cmd "qm set $vm_tmpl_id --cicustom \"user=local:snippets/100-users.yml,network=local:snippets/100-network.yml\""
 	run_cmd "qm set $vm_tmpl_id --serial0 socket --vga serial0"
 	run_cmd "qm set $vm_tmpl_id --agent enabled=1,fstrim_cloned_disks=1"
 	print_ok
@@ -223,7 +223,7 @@ create_vms () {
 
 		echo -n "Setting up Cloud Init Custom..."
 		run_cmd "sed 's/<IPADDR>/$(($worker_ip + $i))/' $snippet > \"$snippet_dir/$worker_name.yml\""
-		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yaml,network=local:snippets/$worker_name.yml\""
+		run_cmd "qm set $worker_id --cicustom \"user=local:snippets/worker-users.yml,network=local:snippets/$worker_name.yml\""
 		print_ok
 
 		echo -n "Starting $worker_name..."
