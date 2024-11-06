@@ -179,6 +179,7 @@ create_vm_tmpl () {
 
 create_vms () {
 	sleep 30
+	
 	echo "Deleting pfsense VMs..."
 	local vms_to_rm=$(pvesh get /cluster/resources --output-format json | jq -r '.[] | select(.name and .vmid) | select(.name | test("^pfsense.*")) | select (.template==0) | .vmid')
 
