@@ -221,6 +221,11 @@ create_vms () {
 		run_cmd "qm set $worker_id --net1 'virtio,bridge=pfsense,tag=$(($i + 1))'"
 		print_ok
 
+
+
+
+
+
 		echo -n "Setting up Cloud Init Custom..."
 		run_cmd "rm -f $snippet_dir/$worker_name"
 		run_cmd "cp $snippet $snippet_dir/$worker_name"
