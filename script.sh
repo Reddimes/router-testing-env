@@ -36,9 +36,11 @@ print_ok () {
 
 # Default values
 ubuntu_ver="24.04"
+pfsense_tmpl_id=8000
 vm_tmpl_id=9000
+worker_tmpl_id=10000
 vm_tmpl_name="Ubuntu-2404"
-worker_tmpl_id=8000
+worker_tmpl_name="pfsense-worker"
 vm_disk_storage="local-lvm"
 
 # Construct the Ubuntu image URL based on the version input
@@ -47,18 +49,6 @@ ubuntu_img_filename=$(basename $ubuntu_img_url)
 ubuntu_img_base_url=$(dirname $ubuntu_img_url)
 df_iso_path="/var/lib/vz/template/iso"
 script_tmp_path="/tmp/proxmox-scripts"
-disk_storage="/dev/pve/vm-$vm_tmpl_id-disk-0"
-
-echo $1
-
-param () {
-	for ((i = 1; i<=$1; i++))
-	do
-		echo $i
-	done
-}
-param $1
-exit
 
 install_lib () {
 	local name="$1"
@@ -102,8 +92,17 @@ enable_cpu_hotplug () {
 customize () {	
 	echo -n "Expanding hard drive..."	
 	run_cmd "qemu-img resize $ubuntu_img_filename +2G"	
+	print_ok
+
+	echo -n "Installing cloud-guest-utils..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt update -y && apt install cloud-guest-utils -y'"
+	print_ok
+
+	echo -n "Growing Partition..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'growpart /dev/sda 1'"
+	print_ok
+
+	echo -n "Expanding filesystem..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'resize2fs /dev/sda1'"
 	print_ok
 	
@@ -123,11 +122,11 @@ reset_machine_id () {
 }
 
 create_vm_tmpl () {
-	echo -n "Destorying old template..."
+	echo -n "Destorying old server template..."
 	run_cmd "qm destroy $vm_tmpl_id --purge || true"
 	print_ok
 	
-	echo -n "Creating VM..."
+	echo -n "Creating server template VM..."
 	run_cmd "qm create $vm_tmpl_id --name $vm_tmpl_name --memory 2048 --cores=1 --net0 virtio,bridge=vmbr0"
 	print_ok
 
@@ -147,9 +146,76 @@ create_vm_tmpl () {
 	echo -n "Converting to template..."
 	run_cmd "qm template $vm_tmpl_id"
 	print_ok
+
+	echo -n "Adding worker dependancies..."
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
+#	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install '"
 	
+	echo -n "Destorying old worker template..."
+	run_cmd "qm destroy $worker_tmpl_id --purge || true"
+	print_ok
+	
+	echo -n "Creating worker template VM..."
+	run_cmd "qm create $worker_tmpl_id --name $worker_tmpl_name --memory 2048 --cores=1 --net0 virtio,bridge=vmbr0"
+	print_ok
+
+	echo -n "Importing Disk..."
+	run_cmd "qm set $worker_tmpl_id --scsihw virtio-scsi-single"
+	run_cmd "qm set $worker_tmpl_id --virtio0 $vm_disk_storage:0,import-from=$script_tmp_path/$ubuntu_img_filename"
+	run_cmd "qm set $worker_tmpl_id --boot c --bootdisk virtio0"
+	print_ok
+		
+	echo -n "Creating Hardware..."
+	run_cmd "qm set $worker_tmpl_id --ide2 $vm_disk_storage:cloudinit"
+	run_cmd "qm set $worker_tmpl_id --cicustom \"user=local:snippets/100-users.yaml,network=local:snippets/100-network.yaml\""
+	run_cmd "qm set $worker_tmpl_id --serial0 socket --vga serial0"
+	run_cmd "qm set $worker_tmpl_id --agent enabled=1,fstrim_cloned_disks=1"
+	print_ok
+
+	echo -n "Converting to template..."
+	run_cmd "qm template $worker_tmpl_id"
+	print_ok
 
 }
+
+create_vms () {
+	sleep 30
+	echo "Deleting pfsense VMs..."
+	local vms_to_rm=$(pvesh get /cluster/resources --output-format json | jq -r '.[] | select(.name and .vmid) | select(.name | test("^pfsense.*")) | select (.template==0) | .vmid')
+
+	for i in $vms_to_rm
+	do
+		echo -n "Aggresively stop and delete VM $i..."
+		run_cmd "qm stop $i"
+		run_cmd "qm destroy $i --purge || true"
+		print_ok
+	done
+
+	for ((i = 1; i<=$1; i++))
+	do
+		local router_name="pfsense-router$i"
+		local router_id=$(($pfsense_tmpl_id + $i))
+		local worker_name="pfsense-worker$i"
+		local worker_id=$(($worker_tmpl_id + $i))
+		
+		echo -n "Cloning $router_name..."
+		run_cmd "qm clone $pfsense_tmpl_id $router_id --name $router_name --full"
+		print_ok
+
+		echo -n "Starting $router_name..."
+		run_cmd "qm start $router_id"
+		print_ok
+
+		echo -n "Cloning $worker_name..."
+		run_cmd "qm clone $worker_tmpl_id $worker_id --name $worker_name --full"
+		print_ok
+
+		echo -n "Starting $worker_name..."
+		run_cmd "qm start $worker_id"
+		print_ok
+	done
+}
+
 
 cleanup () { 
 	echo -n "Performing cleanup..."
@@ -164,3 +230,4 @@ customize
 enable_cpu_hotplug
 reset_machine_id
 create_vm_tmpl
+create_vms $1
