@@ -102,8 +102,8 @@ customize () {
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'growpart /dev/sda 1'"
 	print_ok
 
-	echo -n "Resetting Cloud-init"
-	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt remove cloud-init --purge -y && apt install cloud-init -y'"
+	echo -n "Resetting cloud-init..."
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt remove cloud-init --purge -y && apt install cloud-init -y && cloud-init clean'"
 	print_ok
 
 	echo -n "Expanding filesystem..."
@@ -121,7 +121,7 @@ customize () {
 
 reset_machine_id () {
 	echo -n "Resetting the machine ID..."
-	run_cmd "virt-customize -x -a $ubuntu_img_filename --run-command 'echo -n >/etc/machine-id'"
+	run_cmd "virt-customize -x -a $ubuntu_img_filename --run-command 'echo -n > /etc/machine-id'"
 	print_ok
 }
 
@@ -153,7 +153,9 @@ create_vm_tmpl () {
 
 	echo -n "Adding worker dependancies..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip -y'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install --upgrade pip --break-system-packages'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'pip install -U selenium --break-system-packages'"
+	print_ok
 	
 	echo -n "Destorying old worker template..."
 	run_cmd "qm destroy $worker_tmpl_id --purge || true"
@@ -218,8 +220,21 @@ create_vms () {
 		run_cmd "qm start $router_id"
 		print_ok
 
-		echo -n "Cloning $worker_name..."
-		run_cmd "qm clone $worker_tmpl_id $worker_id --name $worker_name --full"
+		echo -n "Creating $worker_name VM..."
+		run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'hostnamectl hostname $worker_name'"
+		run_cmd "qm create $worker_id --name $worker_name --memory 2048 --cores=1 --net0 virtio,bridge=vmbr0"
+		print_ok
+
+		echo -n "Importing Disk..."
+		run_cmd "qm set $worker_id --scsihw virtio-scsi-single"
+		run_cmd "qm set $worker_id --virtio0 $vm_disk_storage:0,import-from=$script_tmp_path/$ubuntu_img_filename"
+		run_cmd "qm set $worker_id --boot c --bootdisk virtio0"
+		print_ok
+			
+		echo -n "Creating Hardware..."
+		run_cmd "qm set $worker_id --ide2 $vm_disk_storage:cloudinit"
+		run_cmd "qm set $worker_id --serial0 socket --vga serial0"
+		run_cmd "qm set $worker_id --agent enabled=1,fstrim_cloned_disks=1"
 		print_ok
 
 		echo -n "Adding network adapter to vlan $(($i + 1))..."
