@@ -102,6 +102,10 @@ customize () {
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'growpart /dev/sda 1'"
 	print_ok
 
+	echo -n "Resetting Cloud-init"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt remove cloud-init --purge -y && apt install cloud-init -y'"
+	print_ok
+
 	echo -n "Expanding filesystem..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'resize2fs /dev/sda1'"
 	print_ok
