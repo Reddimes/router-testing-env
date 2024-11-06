@@ -240,10 +240,10 @@ cleanup () {
 }
 
 # Main script execution
-# init
-# get_image
-# customize
-# enable_cpu_hotplug
-# reset_machine_id
-# create_vm_tmpl
+init
+get_image
+customize
+enable_cpu_hotplug
+reset_machine_id
+create_vm_tmpl
 create_vms $1
