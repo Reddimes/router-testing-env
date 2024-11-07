@@ -149,11 +149,9 @@ create_vm_tmpl () {
 
 	echo -n "Adding worker dependancies..."
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'apt install jupyter-notebook pip python3-venv -y'"
-	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'mkdir /ground'"
+	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'git clone https://github.com/Reddimes/router-pythontesting.git /ground'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'python3 -m venv /ground/zero'"
 	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'cd /ground && bash -c \"source zero/bin/activate && pip install testrail-api selenium\"'"
-	run_cmd "virt-customize -a $ubuntu_img_filename --run-command 'git clone https://github.com/Reddimes/router-pythontesting.git /ground'"
-	print_ok
 	
 	echo -n "Destorying old worker template..."
 	run_cmd "qm destroy $worker_tmpl_id --purge || true"
@@ -178,7 +176,6 @@ create_vm_tmpl () {
 	echo -n "Converting to template..."
 	run_cmd "qm template $worker_tmpl_id"
 	print_ok
-
 }
 
 create_vms () {
